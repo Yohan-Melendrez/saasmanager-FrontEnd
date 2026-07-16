@@ -1,1 +1,49 @@
 /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background-color: theme('colors.turing-gray');
+    color: theme('colors.turing-navy');
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ──────────────────────────────────────────────
+   Cards oscuras (bg-turing-navy)
+   Garantiza visibilidad de texto independiente
+   de Tailwind purge o herencia del body
+────────────────────────────────────────────── */
+.card-dark {
+    background-color: #1E2E40;
+    color: #ffffff;
+}
+
+.card-dark h2,
+.card-dark h3,
+.card-dark p,
+.card-dark span:not(.badge) {
+    color: #C7D2D9;
+}
+
+.card-dark .card-title {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.card-dark .card-subtitle {
+    color: #07BFA2;
+}
+
+.card-dark .card-meta {
+    color: #C7D2D9;
+}
+
+/* Ocultar barra de desplazamiento manteniendo funcionalidad de scroll (Scroll Invisible) */
+.no-scrollbar {
+    -ms-overflow-style: none; /* IE y Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari y Opera */
+}

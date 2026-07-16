@@ -1,0 +1,4 @@
+/* Clase activa del link de navegación */
+.nav-active {
+  color: #07BFA2 !important; /* turing-teal */
+}

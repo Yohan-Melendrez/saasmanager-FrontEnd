@@ -1,0 +1,173 @@
+<div class="max-w-screen-xl mx-auto p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold" style="color: #1E2E40;">Proveedores</h1>
+      <p class="text-sm mt-1" style="color: #6b7280;">Gestión de proveedores y plataformas cloud</p>
+    </div>
+    <button
+      id="btn-nuevo-proveedor"
+      (click)="abrirModalCrear()"
+      class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow"
+      style="background-color: #025949; color: #ffffff;">
+      <span class="text-lg leading-none">+</span> Nuevo Proveedor
+    </button>
+  </div>
+
+  <!-- Error -->
+  @if (errorMsg()) {
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 flex items-center justify-between">
+      <span>{{ errorMsg() }}</span>
+      <button (click)="limpiarError()" class="text-red-400 hover:text-red-600 text-xl leading-none">&times;</button>
+    </div>
+  }
+
+  <!-- Filtros por Categoría -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    @for (cat of categorias(); track cat) {
+      <button
+        [id]="'filtro-' + cat"
+        (click)="filtrarPorCategoria(cat)"
+        [class]="categoriaSeleccionada() === cat
+          ? 'px-4 py-1.5 rounded-full text-sm font-semibold shadow'
+          : 'px-4 py-1.5 rounded-full text-sm font-medium border transition-colors duration-150'"
+        [style]="categoriaSeleccionada() === cat
+          ? 'background-color: #025949; color: #ffffff;'
+          : 'background-color: #ffffff; color: #1E2E40; border-color: #e5e7eb;'">
+        {{ cat }}
+      </button>
+    }
+  </div>
+
+  <!-- Grid de tarjetas — Toda el área es clicable (abre modal de edición automáticamente) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+    @for (prov of proveedoresFiltrados(); track prov.idProveedor) {
+      <div (click)="abrirModalEditar(prov)"
+           class="rounded-xl shadow-lg p-6 flex flex-col w-full h-full cursor-pointer transition-all duration-200 hover:shadow-2xl hover:-translate-y-1"
+           style="background-color: #1E2E40; color: #ffffff; border: 1px solid #025949;">
+
+        <!-- Encabezado tarjeta -->
+        <div class="flex justify-between items-start mb-4">
+          <div class="w-16 h-16 rounded-md flex items-center justify-center shrink-0 shadow" style="background-color: #C7D2D9;">
+            <span style="color: #1E2E40; font-weight: 700; font-size: 1.5rem; text-transform: uppercase;">
+              {{ (prov.nombrePlataforma ? prov.nombrePlataforma.charAt(0) : 'P') }}
+            </span>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ml-3"
+                style="background-color: #4CD9BA; color: #1E2E40;">
+            {{ (prov.categoriaServicio ? prov.categoriaServicio.substring(0, 4) : 'GEN') | uppercase }}
+          </span>
+        </div>
+
+        <!-- Cuerpo -->
+        <h3 class="text-xl font-bold mb-2 line-clamp-1" style="color: #ffffff;" [title]="prov.nombrePlataforma || ''">
+          {{ prov.nombrePlataforma || 'Sin nombre' }}
+        </h3>
+        <p class="text-sm mb-4 line-clamp-2" style="color: #C7D2D9;" [title]="prov.categoriaServicio || ''">
+          {{ prov.categoriaServicio || 'General' }}
+        </p>
+
+        <!-- Acciones funcionales -->
+        <div class="mt-auto pt-4 flex items-center justify-end" style="border-top: 1px solid rgba(2, 89, 73, 0.4);" (click)="$event.stopPropagation()">
+          @if (confirmandoEliminarId() === prov.idProveedor) {
+            <div class="flex items-center justify-end gap-2 w-full">
+              <span class="text-xs flex-1 font-semibold" style="color: #f87171;">¿Eliminar proveedor?</span>
+              <button
+                [id]="'btn-confirmar-eliminar-' + prov.idProveedor"
+                (click)="eliminar(prov.idProveedor)"
+                class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                style="background-color: #dc2626; color: #ffffff;">
+                Sí
+              </button>
+              <button
+                (click)="cancelarEliminar()"
+                class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                style="background-color: #C7D2D9; color: #1E2E40;">
+                No
+              </button>
+            </div>
+          } @else {
+            <button
+              [id]="'btn-eliminar-' + prov.idProveedor"
+              (click)="confirmarEliminar(prov.idProveedor)"
+              class="text-sm font-bold transition-colors hover:underline"
+              style="color: #f87171;">
+              Eliminar
+            </button>
+          }
+        </div>
+
+      </div>
+    } @empty {
+      <div class="col-span-full text-center py-10 bg-white rounded-lg shadow border border-gray-200">
+        <p class="text-gray-500 font-medium">No hay proveedores en esta categoría.</p>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- Modal -->
+@if (showModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" (click)="cerrarModal()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-bold" style="color: #1E2E40;">
+          {{ modoEdicion() ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+        </h2>
+        <button id="btn-cerrar-modal-proveedor" (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-4">
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre de plataforma</label>
+          <input
+            id="input-nombrePlataforma"
+            type="text"
+            formControlName="nombrePlataforma"
+            placeholder="Ej: Microsoft, GitHub..."
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none transition"
+            style="color: #1E2E40;" />
+          @if (form.get('nombrePlataforma')?.invalid && form.get('nombrePlataforma')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Campo requerido.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría de servicio</label>
+          <input
+            id="input-categoriaServicio"
+            type="text"
+            formControlName="categoriaServicio"
+            placeholder="Ej: Productividad, Desarrollo..."
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none transition"
+            style="color: #1E2E40;" />
+          @if (form.get('categoriaServicio')?.invalid && form.get('categoriaServicio')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Campo requerido.</p>
+          }
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            type="button"
+            (click)="cerrarModal()"
+            class="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button
+            id="btn-guardar-proveedor"
+            type="submit"
+            [disabled]="form.invalid || guardando()"
+            class="flex-1 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors duration-200"
+            style="background-color: #025949;">
+            {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar cambios' : 'Crear proveedor') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}

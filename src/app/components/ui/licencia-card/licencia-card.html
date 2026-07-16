@@ -1,0 +1,21 @@
+<div class="bg-white rounded-xl shadow-md p-5 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+  <div class="flex items-center justify-between mb-3">
+    <span class="text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded-full"
+      [ngClass]="{
+        'bg-green-100 text-green-700': licencia.estado === 'ACTIVA',
+        'bg-yellow-100 text-yellow-700': licencia.estado === 'INACTIVA',
+        'bg-red-100 text-red-700': licencia.estado === 'EXPIRADA'
+      }">
+      {{ licencia.estado }}
+    </span>
+    <span class="text-xs text-gray-400">{{ licencia.proveedor.categoriaServicio }}</span>
+  </div>
+
+  <h2 class="text-lg font-bold text-turing-navy mb-1">{{ licencia.nombreProducto }}</h2>
+  <p class="text-sm text-turing-dark-green font-medium mb-3">{{ licencia.proveedor.nombrePlataforma }}</p>
+
+  <div class="flex items-center gap-1 text-xs text-gray-500">
+    <span>Vence:</span>
+    <span class="font-semibold text-turing-teal">{{ licencia.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+  </div>
+</div>

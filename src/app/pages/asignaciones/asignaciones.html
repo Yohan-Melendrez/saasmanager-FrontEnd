@@ -1,0 +1,203 @@
+<div class="max-w-screen-xl mx-auto p-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-2">
+    <div>
+      <h1 class="text-2xl font-bold" style="color: #1E2E40;">Asignaciones</h1>
+      <p class="text-sm mt-1" style="color: #6b7280;">
+        @if (authService.esAdmin()) { Gestión de licencias asignadas a empleados }
+        @else { Tus licencias asignadas, {{ authService.nombreUsuario() }} }
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Selector de rol (demo) -->
+      <div class="relative">
+        <button
+          (click)="mostrarSelectorRol.set(!mostrarSelectorRol())"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors"
+          style="background-color: #ffffff; color: #1E2E40; border-color: #e5e7eb;">
+          <span class="w-2 h-2 rounded-full"
+            [style]="authService.esAdmin() ? 'background-color: #07BFA2;' : 'background-color: #facc15;'">
+          </span>
+          {{ authService.rol() }}
+        </button>
+        @if (mostrarSelectorRol()) {
+          <div class="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-44">
+            <button (click)="simularRol('ADMIN')"
+              class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 font-medium" style="color: #1E2E40;">
+              👑 Simular ADMIN
+            </button>
+            <button (click)="simularRol('EMPLEADO')"
+              class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50" style="color: #1E2E40;">
+              👤 Simular EMPLEADO
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (authService.esAdmin()) {
+        <button
+          id="btn-nueva-asignacion"
+          (click)="abrirModal()"
+          class="flex items-center gap-2 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+          style="background-color: #025949;">
+          <span class="text-lg leading-none">+</span> Nueva Asignación
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Banner rol empleado -->
+  @if (!authService.esAdmin()) {
+    <div class="mb-4 mt-4 rounded-lg px-4 py-3 flex items-center gap-3"
+         style="background-color: #1E2E40; color: #4CD9BA; border: 1px solid #025949;">
+      <span class="text-xl">🔒</span>
+      <span class="text-sm" style="color: #ffffff;">Modo empleado — visualizando las licencias asignadas a <strong style="color: #4CD9BA;">{{ authService.nombreUsuario() }}</strong>.</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (errorMsg()) {
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 flex items-center justify-between">
+      <span>{{ errorMsg() }}</span>
+      <button (click)="limpiarError()" class="text-red-400 hover:text-red-600 text-xl leading-none">&times;</button>
+    </div>
+  }
+
+  <!-- Grid de asignaciones - alineado con la BD Spring Boot -->
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (asig of asignacionesFiltradas(); track asig.idAsignacion) {
+      <div class="rounded-xl shadow-lg p-6 flex flex-col"
+           style="background-color: #1E2E40; color: #ffffff; border: 1px solid #025949;">
+
+        <!-- Encabezado -->
+        <div class="flex justify-between items-start mb-4">
+          <div class="w-12 h-12 rounded-md flex items-center justify-center shrink-0" style="background-color: #C7D2D9;">
+            <span style="color: #1E2E40; font-weight: 700; font-size: 1.125rem; text-transform: uppercase;">
+              {{ obtenerTituloLicencia(asig.licencia).charAt(0) }}
+            </span>
+          </div>
+          @if ((asig.licencia && asig.licencia.estado === 'ACTIVA') || asig.estatusActivo === true) {
+            <span class="text-xs font-bold uppercase px-3 py-1 rounded-full ml-3"
+                  style="background-color: #d1fae5; color: #065f46;">ACTIVA</span>
+          } @else {
+            <span class="text-xs font-bold uppercase px-3 py-1 rounded-full ml-3"
+                  style="background-color: #fee2e2; color: #991b1b;">INACTIVA</span>
+          }
+        </div>
+
+        <!-- Título superior: Plan de la Licencia (tipoPlan) -->
+        <h3 class="text-lg font-bold mb-1 line-clamp-1" style="color: #ffffff;" [title]="obtenerTituloLicencia(asig.licencia)">
+          {{ obtenerTituloLicencia(asig.licencia) }}
+        </h3>
+
+        <!-- Subtítulo inferior: Plataforma / Proveedor -->
+        <p class="text-sm font-medium" style="color: #07BFA2;">
+          {{ obtenerProveedorLicencia(asig.licencia) }}
+        </p>
+
+        <!-- Detalle de la licencia -->
+        <p class="text-xs mt-1 mb-3" style="color: #C7D2D9;">
+          @if (asig.licencia && asig.licencia.fechaVencimiento) { Vence {{ asig.licencia.fechaVencimiento | date:'dd/MM/yyyy' }} }
+          @else if (asig.licencia && asig.licencia.costoMensual) { Costo: ${{ asig.licencia.costoMensual }}/mes }
+          @else { Asignación oficial }
+        </p>
+
+        <!-- Info empleado / correo devuelto por Spring Boot (solo admin lo ve) -->
+        @if (authService.esAdmin()) {
+          <div class="flex items-center gap-2 rounded-lg px-3 py-2 mb-3" style="background-color: rgba(2, 89, 73, 0.4);">
+            <span class="text-xs">👤</span>
+            <div class="overflow-hidden">
+              <p class="text-xs font-semibold truncate" style="color: #ffffff;" [title]="obtenerTextoEmpleado(asig)">
+                {{ obtenerTextoEmpleado(asig) }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <p class="text-xs" style="color: #C7D2D9;">Asignado: {{ asig.fechaAsignacion | date:'dd/MM/yyyy' }}</p>
+
+        <!-- Acciones solo admin -->
+        @if (authService.esAdmin()) {
+          <div class="mt-auto pt-4" style="border-top: 1px solid #025949;">
+            @if (confirmandoEliminarId() === asig.idAsignacion) {
+              <div class="flex items-center gap-2">
+                <span class="text-xs flex-1" style="color: #f87171;">¿Revocar asignación?</span>
+                <button [id]="'btn-confirmar-eliminar-' + asig.idAsignacion"
+                  (click)="eliminar(asig.idAsignacion)"
+                  class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                  style="background-color: #dc2626; color: #ffffff;">Sí</button>
+                <button (click)="cancelarEliminar()"
+                  class="px-3 py-1 rounded text-xs font-medium transition-colors"
+                  style="background-color: #C7D2D9; color: #1E2E40;">No</button>
+              </div>
+            } @else {
+              <div class="flex justify-end">
+                <button [id]="'btn-revocar-' + asig.idAsignacion"
+                  (click)="confirmarEliminar(asig.idAsignacion)"
+                  class="text-sm font-bold transition-colors hover:underline"
+                  style="color: #f87171;">
+                  Revocar
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- Modal Nueva Asignación -->
+@if (showModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" (click)="cerrarModal()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-bold" style="color: #1E2E40;">Asignar Licencia</h2>
+        <button id="btn-cerrar-modal-asig" (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Licencia</label>
+          <select id="select-licencia" formControlName="idLicencia"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white transition"
+            style="color: #1E2E40;">
+            <option value="" disabled>Seleccionar licencia</option>
+            @for (lic of licencias(); track lic.idLicencia) {
+              <option [value]="lic.idLicencia.toString()" [disabled]="obtenerPlazasDisponibles(lic) <= 0">
+                {{ obtenerTituloLicencia(lic) }} ({{ obtenerProveedorLicencia(lic) }}) — Plazas libres: {{ obtenerPlazasDisponibles(lic) }} de {{ lic.asientosTotales }}
+              </option>
+            }
+          </select>
+          @if (form.get('idLicencia')?.invalid && form.get('idLicencia')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Selecciona una licencia.</p>
+          }
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico del Empleado</label>
+          <input id="input-correo-empleado" type="email" formControlName="correoEmpleado"
+            placeholder="Ej: juan.perez@empresa.com"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none transition"
+            style="color: #1E2E40;" />
+          @if (form.get('correoEmpleado')?.invalid && form.get('correoEmpleado')?.touched) {
+            <p class="text-red-500 text-xs mt-1">Ingresa un correo electrónico válido.</p>
+          }
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="cerrarModal()"
+            class="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button id="btn-guardar-asignacion" type="submit"
+            [disabled]="form.invalid || guardando()"
+            class="flex-1 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors duration-200"
+            style="background-color: #025949;">
+            {{ guardando() ? 'Asignando...' : 'Asignar licencia' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

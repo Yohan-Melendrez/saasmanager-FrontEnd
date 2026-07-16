@@ -1,0 +1,17 @@
+/* Badges de estado — clases estáticas para evitar purge de Tailwind */
+.estado-activa {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.estado-inactiva {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+.estado-expirada {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+.estado-default {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}

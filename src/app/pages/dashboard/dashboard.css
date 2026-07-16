@@ -1,0 +1,8 @@
+/* Scroll Invisible: Oculta la barra de desplazamiento permitiendo hacer scroll con mouse/touch */
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE y Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari y Opera */
+}
