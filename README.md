@@ -26,19 +26,27 @@ npm install
 
 ## Variables de entorno / configuración
 
-Este proyecto **no usa** `src/environments/*.ts`. La URL base de la API está *hardcodeada* en cada servicio HTTP:
+La URL base de la API vive en `src/environments/`, con reemplazo automático de archivo según la configuración de build (`fileReplacements` en `angular.json`):
 
-| Archivo | Constante | Valor actual |
+| Archivo | Usado por | `apiUrl` |
 |---|---|---|
-| `src/app/services/auth/auth.ts` | `apiUrl` | `http://localhost:8081/api/v1/auth` |
-| `src/app/services/api/usuarios.ts` | `apiUrl` | `http://localhost:8081/api/v1/users` |
-| `src/app/services/api/proveedores.ts` | `apiUrl` | `http://localhost:8081/api/v1/proveedores` |
-| `src/app/services/api/licencias.ts` | `apiUrl` | `http://localhost:8081/api/v1/licencias` |
-| `src/app/services/api/asignaciones.ts` | `apiUrl` | `http://localhost:8081/api/v1/asignaciones` |
+| `src/environments/environment.development.ts` | `ng serve` / `npm start` (configuración `development`, la default de `serve`) | `http://localhost:8081/api/v1` |
+| `src/environments/environment.ts` | `ng build` (configuración `production`, la default de `build`) | `https://saasmanager-backend.onrender.com/api/v1` |
 
-Si el backend corre en otro host/puerto, hay que editar la constante `apiUrl` en cada uno de esos archivos (o extraerla a un `environment.ts` propio). El backend, a su vez, solo permite CORS desde `http://localhost:4200` (hardcodeado en `SecurityConfig.java` del backend) — si cambiás el puerto del frontend, hay que actualizar eso también del lado del backend.
+Los 5 servicios HTTP (`services/auth/auth.ts`, `services/api/usuarios.ts`, `services/api/proveedores.ts`, `services/api/licencias.ts`, `services/api/asignaciones.ts`) arman su `apiUrl` a partir de `environment.apiUrl` — no hay hosts hardcodeados en el código de los servicios. Para apuntar a otro backend, editá el `apiUrl` del archivo de entorno correspondiente.
 
-No hay `.env` ni variables de entorno de sistema que este proyecto lea en tiempo de build o runtime.
+No hay `.env` ni variables de entorno de sistema que este proyecto lea en tiempo de build o runtime — todo pasa por estos dos archivos de TypeScript.
+
+## Cómo correr la app en local (contra el backend local)
+
+1. Levantá el backend primero (ver README de `saasmanager-BackEnd`) — debe quedar escuchando en `http://localhost:8081`.
+2. En este repo, instalá dependencias si no lo hiciste (`npm install`).
+3. Corré `npm start`. Angular usa automáticamente `environment.development.ts` (apunta a `localhost:8081`) porque `ng serve` usa la configuración `development` por defecto — no hace falta tocar nada.
+4. Abrí `http://localhost:4200/`.
+5. El backend solo permite CORS desde `http://localhost:4200` (hardcodeado en `SecurityConfig.java`) — si servís el frontend en otro puerto, hay que actualizar eso del lado del backend.
+6. Registrate desde `/register` o usá un usuario existente en la base para loguearte desde `/login`.
+
+Si en cambio corrés `npm run build` (o `ng build` sin flags), se usa la configuración `production` por defecto, que apunta al backend desplegado en Render — no al local. Para forzar un build "de producción" que pegue a tu backend local, hay que compilar explícitamente con la configuración development: `ng build --configuration development`.
 
 ## Comandos
 
@@ -49,7 +57,7 @@ npm start
 # equivalente a: ng serve
 ```
 
-Disponible en `http://localhost:4200/`. Recarga automática al guardar cambios.
+Disponible en `http://localhost:4200/`. Recarga automática al guardar cambios. Usa `environment.development.ts` (backend local).
 
 ### Build de producción
 
@@ -57,7 +65,7 @@ Disponible en `http://localhost:4200/`. Recarga automática al guardar cambios.
 npm run build
 ```
 
-Artefactos generados en `dist/saasmanager-FrontEnd/`.
+Artefactos generados en `dist/saasmanager-FrontEnd/browser/`. Usa `environment.ts` (backend en Render).
 
 ### Build en modo watch (desarrollo)
 
