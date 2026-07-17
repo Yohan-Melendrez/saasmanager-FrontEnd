@@ -1,0 +1,63 @@
+<div class="max-w-screen-xl mx-auto p-6 mt-4">
+  <div class="max-w-lg mx-auto rounded-xl shadow-lg p-8 bg-turing-navy border border-turing-dark-green">
+    <h1 class="text-2xl font-bold text-white mb-1">Editar Perfil</h1>
+    <p class="text-sm text-turing-gray mb-6">Rol actual: <span class="font-bold text-turing-teal">{{ rolEtiqueta }}</span></p>
+
+    @if (cargando()) {
+      <p class="text-sm text-turing-gray">Cargando datos...</p>
+    } @else {
+      @if (guardado()) {
+        <div class="mb-4 rounded-lg px-4 py-3 text-sm font-medium" style="background-color: #d1fae5; color: #065f46;">
+          Perfil actualizado correctamente.
+        </div>
+      }
+      @if (errorMsg()) {
+        <div class="mb-4 rounded-lg px-4 py-3 text-sm font-medium bg-red-100 text-red-800">
+          {{ errorMsg() }}
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wide text-turing-gray mb-1">Nombre de usuario</label>
+          <input type="text" formControlName="username" autocomplete="username"
+                 class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal" />
+          @if (form.get('username')?.invalid && form.get('username')?.touched) {
+            <p class="text-xs mt-1 text-red-400">Nombre de usuario requerido.</p>
+          }
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wide text-turing-gray mb-1">Correo</label>
+          <input type="email" formControlName="email" autocomplete="email"
+                 class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal" />
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <p class="text-xs mt-1 text-red-400">Correo válido requerido.</p>
+          }
+        </div>
+
+        <div class="pt-2 border-t border-turing-dark-green">
+          <p class="text-xs font-semibold uppercase tracking-wide text-turing-gray mb-3 mt-3">Cambiar contraseña (opcional)</p>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-turing-gray mb-1">Contraseña actual</label>
+              <input type="password" formControlName="passwordActual" autocomplete="current-password"
+                     class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal" />
+            </div>
+            <div>
+              <label class="block text-xs text-turing-gray mb-1">Nueva contraseña</label>
+              <input type="password" formControlName="passwordNuevo" autocomplete="new-password"
+                     class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal" />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="form.invalid || guardando()"
+                class="w-full rounded-lg py-2.5 text-sm font-bold uppercase tracking-wider bg-turing-teal text-turing-navy transition-colors hover:bg-turing-light-green disabled:opacity-50">
+          {{ guardando() ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </form>
+    }
+  </div>
+</div>

@@ -10,31 +10,6 @@
       </p>
     </div>
     <div class="flex items-center gap-3">
-      <!-- Selector de rol (demo) -->
-      <div class="relative">
-        <button
-          (click)="mostrarSelectorRol.set(!mostrarSelectorRol())"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors"
-          style="background-color: #ffffff; color: #1E2E40; border-color: #e5e7eb;">
-          <span class="w-2 h-2 rounded-full"
-            [style]="authService.esAdmin() ? 'background-color: #07BFA2;' : 'background-color: #facc15;'">
-          </span>
-          {{ authService.rol() }}
-        </button>
-        @if (mostrarSelectorRol()) {
-          <div class="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-44">
-            <button (click)="simularRol('ADMIN')"
-              class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 font-medium" style="color: #1E2E40;">
-              👑 Simular ADMIN
-            </button>
-            <button (click)="simularRol('EMPLEADO')"
-              class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50" style="color: #1E2E40;">
-              👤 Simular EMPLEADO
-            </button>
-          </div>
-        }
-      </div>
-
       @if (authService.esAdmin()) {
         <button
           id="btn-nueva-asignacion"

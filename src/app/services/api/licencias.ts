@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Licencia } from '../../models/licencia.interface';
+import { environment } from '../../../environments/environment';
 
 export interface LicenciaPayload {
   nombreProducto: string;
@@ -15,7 +16,7 @@ export interface LicenciaPayload {
 })
 export class LicenciasService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8081/api/v1/licencias';
+  private apiUrl = `${environment.apiUrl}/licencias`;
 
   obtenerLicencias(): Observable<Licencia[]> {
     return this.http.get<Licencia[]>(this.apiUrl);

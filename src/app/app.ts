@@ -9,5 +9,5 @@ import { Navbar } from './components/layout/navbar/navbar';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('saasmanager-FrontEnd');
+  protected readonly title = signal('SaaSManager');
 }

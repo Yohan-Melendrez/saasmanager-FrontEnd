@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ProveedoresService } from '../../services/api/proveedores';
 import { LicenciasService } from '../../services/api/licencias';
 import { AsignacionesService } from '../../services/api/asignaciones';
+import { AuthService } from '../../services/auth/auth';
 import { Proveedor } from '../../models/proveedor.interface';
 import { Licencia } from '../../models/licencia.interface';
 import { Asignacion } from '../../models/asignacion.interface';
@@ -19,7 +20,10 @@ export class DashboardComponent implements OnInit {
   private proveedoresService = inject(ProveedoresService);
   private licenciasService = inject(LicenciasService);
   private asignacionesService = inject(AsignacionesService);
+  private authService = inject(AuthService);
   private router = inject(Router);
+
+  esAdmin = computed(() => this.authService.esAdmin());
 
   proveedores = signal<Proveedor[]>([]);
   licencias = signal<Licencia[]>([]);
@@ -32,12 +36,50 @@ export class DashboardComponent implements OnInit {
   licenciasExpiradas = computed(() => this.licencias().filter(l => this.obtenerEstado(l) === 'EXPIRADA').length);
   licenciasListaExpirada = computed(() => this.licencias().filter(l => this.obtenerEstado(l) === 'EXPIRADA'));
   totalAsignaciones = computed(() => this.asignaciones().filter(a => a.estatusActivo !== false).length);
-  
+
   licenciasRecientes = computed(() => [...this.licencias()]);
   proveedoresRecientes = computed(() => [...this.proveedores()]);
   asignacionesRecientes = computed(() => [...this.asignaciones()]);
 
+  misLicencias = computed<Licencia[]>(() => {
+    const vistas = new Set<number>();
+    const resultado: Licencia[] = [];
+    for (const a of this.asignaciones()) {
+      if (a.licencia && !vistas.has(a.licencia.idLicencia)) {
+        vistas.add(a.licencia.idLicencia);
+        resultado.push(a.licencia);
+      }
+    }
+    return resultado;
+  });
+
+  misLicenciasExpiradas = computed<Licencia[]>(() =>
+    this.misLicencias().filter(l => this.obtenerEstado(l) === 'EXPIRADA')
+  );
+
   ngOnInit(): void {
+    if (this.esAdmin()) {
+      this.cargarDatosAdmin();
+    } else {
+      this.cargarDatosEmpleado();
+    }
+  }
+
+  cargarDatosEmpleado(): void {
+    this.loading.set(true);
+    this.asignacionesService.obtenerAsignaciones().subscribe({
+      next: (data) => {
+        this.asignaciones.set(Array.isArray(data) ? data : []);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.asignaciones.set([]);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  cargarDatosAdmin(): void {
     this.cargarDatos();
 
     setTimeout(() => {

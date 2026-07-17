@@ -3,3 +3,8 @@ export interface Proveedor {
   nombrePlataforma: string;
   categoriaServicio: string;
 }
+
+export interface DependenciasProveedor {
+  licencias: number;
+  asignaciones: number;
+}

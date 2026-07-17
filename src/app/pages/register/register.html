@@ -1,0 +1,54 @@
+<div class="min-h-screen flex items-center justify-center bg-turing-gray px-4">
+  <div class="w-full max-w-md rounded-xl shadow-lg p-8 bg-turing-navy border border-turing-dark-green">
+    <h1 class="text-2xl font-bold text-white mb-1">Crear Cuenta</h1>
+    <p class="text-sm text-turing-gray mb-6">Regístrese para acceder a SaaSManager.</p>
+
+    @if (errorMsg()) {
+      <div class="mb-4 rounded-lg px-4 py-3 text-sm font-medium bg-red-100 text-red-800">
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="registrar()" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide text-turing-gray mb-1">Nombre</label>
+        <input type="text" formControlName="username" autocomplete="username"
+               class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal"
+               placeholder="Nombre completo" />
+        @if (form.get('username')?.invalid && form.get('username')?.touched) {
+          <p class="text-xs mt-1 text-red-400">Nombre requerido.</p>
+        }
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide text-turing-gray mb-1">Correo</label>
+        <input type="email" formControlName="email" autocomplete="email"
+               class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal"
+               placeholder="usuario@empresa.com" />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <p class="text-xs mt-1 text-red-400">Correo válido requerido.</p>
+        }
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide text-turing-gray mb-1">Contraseña</label>
+        <input type="password" formControlName="password" autocomplete="new-password"
+               class="w-full rounded-lg px-3 py-2.5 text-sm bg-turing-gray text-turing-navy focus:outline-none focus:ring-2 focus:ring-turing-teal"
+               placeholder="Mínimo 6 caracteres" />
+        @if (form.get('password')?.invalid && form.get('password')?.touched) {
+          <p class="text-xs mt-1 text-red-400">Contraseña de al menos 6 caracteres.</p>
+        }
+      </div>
+
+      <button type="submit" [disabled]="form.invalid || cargando()"
+              class="w-full rounded-lg py-2.5 text-sm font-bold uppercase tracking-wider bg-turing-teal text-turing-navy transition-colors hover:bg-turing-light-green disabled:opacity-50">
+        {{ cargando() ? 'Registrando...' : 'Registrarse' }}
+      </button>
+    </form>
+
+    <p class="text-xs text-turing-gray mt-6 text-center">
+      ¿Ya tiene cuenta?
+      <a routerLink="/login" class="text-turing-teal font-bold hover:underline">Inicie sesión aquí</a>
+    </p>
+  </div>
+</div>

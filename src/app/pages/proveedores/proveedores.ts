@@ -3,7 +3,7 @@ import { CommonModule, UpperCasePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ProveedoresService, ProveedorPayload } from '../../services/api/proveedores';
-import { Proveedor } from '../../models/proveedor.interface';
+import { Proveedor, DependenciasProveedor } from '../../models/proveedor.interface';
 
 @Component({
   selector: 'app-proveedores',
@@ -25,6 +25,7 @@ export class ProveedoresComponent implements OnInit {
   modoEdicion = signal<boolean>(false);
   proveedorEditandoId = signal<number | null>(null);
   confirmandoEliminarId = signal<number | null>(null);
+  dependenciasEliminar = signal<DependenciasProveedor | null>(null);
   guardando = signal<boolean>(false);
 
   categorias = computed<string[]>(() => {
@@ -157,18 +158,28 @@ export class ProveedoresComponent implements OnInit {
 
   confirmarEliminar(id: number): void {
     this.confirmandoEliminarId.set(id);
+    this.dependenciasEliminar.set(null);
+    this.proveedoresService.obtenerDependencias(id).subscribe({
+      next: (dep) => this.dependenciasEliminar.set(dep),
+      error: () => this.dependenciasEliminar.set(null),
+    });
   }
 
   cancelarEliminar(): void {
     this.confirmandoEliminarId.set(null);
+    this.dependenciasEliminar.set(null);
   }
 
   eliminar(id: number): void {
-    this.proveedores.update(lista => lista.filter(p => p.idProveedor !== id));
     this.confirmandoEliminarId.set(null);
-    this.proveedoresService.eliminarProveedor(id).subscribe({
-      next: () => {},
-      error: () => {},
+    this.dependenciasEliminar.set(null);
+    this.proveedoresService.eliminarProveedor(id, true).subscribe({
+      next: () => {
+        this.proveedores.update(lista => lista.filter(p => p.idProveedor !== id));
+      },
+      error: (err) => {
+        this.errorMsg.set(err?.error?.mensaje || 'No se pudo eliminar el proveedor.');
+      },
     });
   }
 

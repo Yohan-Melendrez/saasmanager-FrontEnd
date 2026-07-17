@@ -229,11 +229,14 @@ export class LicenciasComponent implements OnInit {
   }
 
   eliminar(id: number): void {
-    this.licencias.update(lista => lista.filter(l => l.idLicencia !== id));
     this.confirmandoEliminarId.set(null);
     this.licenciasService.eliminarLicencia(id).subscribe({
-      next: () => {},
-      error: () => {},
+      next: () => {
+        this.licencias.update(lista => lista.filter(l => l.idLicencia !== id));
+      },
+      error: (err) => {
+        this.errorMsg.set(err?.error?.mensaje || 'No se pudo eliminar la licencia.');
+      },
     });
   }
 

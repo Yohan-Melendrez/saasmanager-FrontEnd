@@ -1,59 +1,111 @@
-# SaasmanagerFrontEnd
+# SaaSManager — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.19.
+Panel interno para la gestión de proveedores cloud, licencias de software y asignaciones a empleados. Cliente Angular que consume la API REST de [saasmanager-BackEnd](../saasmanager-BackEnd).
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- Angular 21 (Standalone Components, Signals para estado)
+- TypeScript (Strict Mode)
+- Tailwind CSS
+- Reactive Forms
+- Vitest (test runner de `ng test`)
 
-```bash
-ng serve
-```
+## Requisitos previos
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Node.js**: `^20.19.0 || ^22.12.0 || >=24.0.0` (requerido por `@angular/cli`)
+- **npm**: `>= 8`
+- Backend en ejecución en `http://localhost:8081` (ver README del backend)
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Instalación
 
 ```bash
-ng generate --help
+git clone <url-del-repositorio>
+cd saasmanager-FrontEnd
+npm install
 ```
 
-## Building
+## Variables de entorno / configuración
 
-To build the project run:
+Este proyecto **no usa** `src/environments/*.ts`. La URL base de la API está *hardcodeada* en cada servicio HTTP:
+
+| Archivo | Constante | Valor actual |
+|---|---|---|
+| `src/app/services/auth/auth.ts` | `apiUrl` | `http://localhost:8081/api/v1/auth` |
+| `src/app/services/api/usuarios.ts` | `apiUrl` | `http://localhost:8081/api/v1/users` |
+| `src/app/services/api/proveedores.ts` | `apiUrl` | `http://localhost:8081/api/v1/proveedores` |
+| `src/app/services/api/licencias.ts` | `apiUrl` | `http://localhost:8081/api/v1/licencias` |
+| `src/app/services/api/asignaciones.ts` | `apiUrl` | `http://localhost:8081/api/v1/asignaciones` |
+
+Si el backend corre en otro host/puerto, hay que editar la constante `apiUrl` en cada uno de esos archivos (o extraerla a un `environment.ts` propio). El backend, a su vez, solo permite CORS desde `http://localhost:4200` (hardcodeado en `SecurityConfig.java` del backend) — si cambiás el puerto del frontend, hay que actualizar eso también del lado del backend.
+
+No hay `.env` ni variables de entorno de sistema que este proyecto lea en tiempo de build o runtime.
+
+## Comandos
+
+### Servidor de desarrollo
 
 ```bash
-ng build
+npm start
+# equivalente a: ng serve
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Disponible en `http://localhost:4200/`. Recarga automática al guardar cambios.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Build de producción
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+Artefactos generados en `dist/saasmanager-FrontEnd/`.
 
-For end-to-end (e2e) testing, run:
+### Build en modo watch (desarrollo)
 
 ```bash
-ng e2e
+npm run watch
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Tests unitarios
 
-## Additional Resources
+```bash
+npm test
+# equivalente a: ng test
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Usa Vitest. Nota: algunos `*.spec.ts` heredados de refactors previos (`dashboard.spec.ts`, `licencias.spec.ts`, `proveedores.spec.ts`, `asignaciones.spec.ts`) están rotos por referencias a nombres de clase antiguos — no relacionado con este README, pendiente de limpieza aparte.
+
+## Autenticación y roles
+
+- El login (`POST /api/v1/auth/login`) devuelve un JWT que se guarda en `localStorage` bajo la key `token`.
+- `AuthService` (`src/app/services/auth/auth.ts`) expone `login()`, `register()`, `logout()`, `esAdmin()`, `getToken()`.
+- Un `HttpInterceptorFn` (`src/app/core/interceptors/auth-interceptor.ts`) agrega automáticamente `Authorization: Bearer <token>` a cada petición.
+- Roles soportados: `ROLE_ADMIN`, `ROLE_USER`.
+- `authGuard` (`src/app/core/guards/auth-guard.ts`) protege cualquier ruta que requiera sesión iniciada.
+- `adminGuard` (`src/app/core/guards/admin-guard.ts`) protege rutas exclusivas de administrador.
+
+## Rutas
+
+| Ruta | Componente | Acceso |
+|---|---|---|
+| `/login` | `LoginComponent` | Público |
+| `/register` | `RegisterComponent` | Público |
+| `/` | `DashboardComponent` | Autenticado |
+| `/proveedores` | `ProveedoresComponent` | Solo ADMIN |
+| `/licencias` | `LicenciasComponent` | Solo ADMIN |
+| `/asignaciones` | `AsignacionesComponent` | Autenticado (empleado ve solo lo propio) |
+| `/perfil` | `PerfilComponent` | Autenticado |
+
+## Estructura del proyecto
+
+```
+src/app
+ ├── core/            # Guards e interceptor HTTP
+ │    ├── guards/
+ │    └── interceptors/
+ ├── services/
+ │    ├── auth/        # AuthService (login/register/perfil/roles)
+ │    └── api/         # Servicios REST por recurso
+ ├── models/           # Interfaces TypeScript (.interface.ts)
+ ├── components/       # Componentes reutilizables (layout, ui)
+ └── pages/            # Componentes de página, uno por ruta
+```

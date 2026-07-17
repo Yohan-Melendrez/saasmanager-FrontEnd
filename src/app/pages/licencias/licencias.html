@@ -98,7 +98,7 @@
         }
 
         <!-- Acciones funcionales (con stopPropagation para no abrir modal al eliminar) -->
-        <div class="mt-auto pt-4 flex items-center justify-end" style="border-top: 1px solid rgba(2, 89, 73, 0.4);" (click)="$event.stopPropagation()">
+        <div class="mt-auto pt-4 flex items-center justify-between" style="border-top: 1px solid rgba(2, 89, 73, 0.4);" (click)="$event.stopPropagation()">
           @if (confirmandoEliminarId() === licencia.idLicencia) {
             <div class="flex items-center justify-end gap-2 w-full">
               <span class="text-xs flex-1 font-semibold" style="color: #f87171;">¿Eliminar?</span>
@@ -111,6 +111,7 @@
                 style="background-color: #C7D2D9; color: #1E2E40;">No</button>
             </div>
           } @else {
+            <span class="text-xs italic" style="color: #C7D2D9;">Click para editar</span>
             <button [id]="'btn-eliminar-' + licencia.idLicencia"
               (click)="confirmarEliminar(licencia.idLicencia)"
               class="text-sm font-bold transition-colors hover:underline"

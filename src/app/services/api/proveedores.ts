@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Proveedor } from '../../models/proveedor.interface';
+import { Proveedor, DependenciasProveedor } from '../../models/proveedor.interface';
+import { environment } from '../../../environments/environment';
 
 export interface ProveedorPayload {
   nombrePlataforma: string;
@@ -13,7 +14,7 @@ export interface ProveedorPayload {
 })
 export class ProveedoresService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8081/api/v1/proveedores';
+  private apiUrl = `${environment.apiUrl}/proveedores`;
 
   obtenerProveedores(): Observable<Proveedor[]> {
     return this.http.get<Proveedor[]>(this.apiUrl);
@@ -27,7 +28,11 @@ export class ProveedoresService {
     return this.http.put<Proveedor>(`${this.apiUrl}/${id}`, payload);
   }
 
-  eliminarProveedor(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  eliminarProveedor(id: number, cascada = false): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}?cascada=${cascada}`);
+  }
+
+  obtenerDependencias(id: number): Observable<DependenciasProveedor> {
+    return this.http.get<DependenciasProveedor>(`${this.apiUrl}/${id}/dependencias`);
   }
 }

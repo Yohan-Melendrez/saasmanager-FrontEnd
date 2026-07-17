@@ -3,97 +3,240 @@
   <!-- Encabezado -->
   <div class="mb-8">
     <h1 class="text-3xl font-bold" style="color: #1E2E40;">Panel de Control</h1>
-    <p class="mt-1 text-sm" style="color: #6b7280;">Resumen global de activos, proveedores y licencias de la plataforma.</p>
+    @if (esAdmin()) {
+      <p class="mt-1 text-sm" style="color: #6b7280;">Resumen global de activos, proveedores y licencias de la plataforma.</p>
+    } @else {
+      <p class="mt-1 text-sm" style="color: #6b7280;">Tus licencias asignadas.</p>
+    }
   </div>
 
-  <!-- Alerta Crítica de Licencias Expiradas -->
-  @if (licenciasExpiradas() > 0) {
-    <div class="mb-8 rounded-xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-2 transition transform hover:scale-[1.005]"
-         style="background-color: #450a0a; border-color: #ef4444; color: #ffffff;">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 font-bold shadow"
+  @if (esAdmin()) {
+
+    <!-- Alerta Crítica de Licencias Expiradas -->
+    @if (licenciasExpiradas() > 0) {
+      <div class="mb-8 rounded-xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-2 transition transform hover:scale-[1.005]"
+           style="background-color: #450a0a; border-color: #ef4444; color: #ffffff;">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow"
+               style="background-color: #ef4444; color: #ffffff;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold flex items-center gap-2">
+              ¡Atención Requerida! {{ licenciasExpiradas() }} {{ licenciasExpiradas() === 1 ? 'licencia ha expirado o vencido' : 'licencias han expirado o vencido' }}
+            </h3>
+            <p class="text-xs mt-1 font-medium" style="color: #fecaca;">
+              @for (licExp of licenciasListaExpirada(); track licExp.idLicencia) {
+                <span class="inline-block mr-3">• <strong>{{ obtenerTitulo(licExp) }}</strong> (Venció el {{ obtenerFechaVencimiento(licExp) | date:'dd/MM/yyyy' }})</span>
+              }
+            </p>
+          </div>
+        </div>
+        <button (click)="irALicencias()"
+                class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow shrink-0 transition-colors hover:bg-red-500"
+                style="background-color: #dc2626; color: #ffffff;">
+          Resolver Ahora →
+        </button>
+      </div>
+    }
+
+    <!-- KPIs principales -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+      <div (click)="irAProveedores()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
+           style="background-color: #1E2E40; border: 1px solid #025949;">
+        <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #C7D2D9;">Proveedores</p>
+        <p class="text-3xl font-bold" style="color: #07BFA2;">{{ totalProveedores() }}</p>
+        <span class="text-xs hover:underline mt-2 block" style="color: #4CD9BA;">Ver todos →</span>
+      </div>
+
+      <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
+           style="background-color: #1E2E40; border: 1px solid #025949;">
+        <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #C7D2D9;">Total Licencias</p>
+        <p class="text-3xl font-bold" style="color: #07BFA2;">{{ totalLicencias() }}</p>
+        <span class="text-xs hover:underline mt-2 block" style="color: #4CD9BA;">Ver todas →</span>
+      </div>
+
+      <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
+           style="background-color: #025949; border: 1px solid #07BFA2;">
+        <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #4CD9BA;">Licencias Activas</p>
+        <p class="text-3xl font-bold" style="color: #ffffff;">{{ licenciasActivas() }}</p>
+        <span class="text-xs mt-2 block" style="color: #d1fae5;">En uso normal →</span>
+      </div>
+
+      <div (click)="irAAsignaciones()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
+           style="background-color: #1E2E40; border: 1px solid #07BFA2;">
+        <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #4CD9BA;">Asignaciones</p>
+        <p class="text-3xl font-bold" style="color: #ffffff;">{{ totalAsignaciones() }}</p>
+        <span class="text-xs mt-2 block" style="color: #07BFA2;">Ver empleados →</span>
+      </div>
+
+      <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
+           style="background-color: #7f1d1d; border: 1px solid #b91c1c;">
+        <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #fca5a5;">Expiradas / Vencidas</p>
+        <p class="text-3xl font-bold" style="color: #ffffff;">{{ licenciasExpiradas() }}</p>
+        <span class="text-xs mt-2 block" style="color: #fee2e2;">Requieren atención →</span>
+      </div>
+    </div>
+
+    <!-- Grid de resumen: Licencias, Proveedores y Asignaciones -->
+    @if (loading()) {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
+        <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
+        <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Licencias recientes -->
+        <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
+             style="background-color: #1E2E40; border: 1px solid #025949;">
+          <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
+            <h2 class="text-base font-bold" style="color: #ffffff;">Licencias y Estado</h2>
+            <button (click)="irALicencias()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Ver todas →</button>
+          </div>
+          <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
+            @for (lic of licenciasRecientes(); track lic.idLicencia) {
+              <li (click)="irALicencias(lic.idLicencia)"
+                  class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
+                  style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
+                <div class="pr-3 overflow-hidden">
+                  <p class="text-sm font-bold truncate" style="color: #ffffff;" [title]="obtenerTitulo(lic)">
+                    {{ obtenerTitulo(lic) }}
+                  </p>
+                  <p class="text-xs mt-0.5" style="color: #C7D2D9;">
+                    {{ (lic.proveedor && lic.proveedor.nombrePlataforma) || 'Plataforma' }} · Vence {{ obtenerFechaVencimiento(lic) | date:'dd/MM/yyyy' }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 ml-2">
+                  @if (obtenerEstado(lic) === 'ACTIVA') {
+                    <span class="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
+                          style="background-color: #d1fae5; color: #065f46;">ACTIVA</span>
+                  }
+                  @if (obtenerEstado(lic) === 'INACTIVA') {
+                    <span class="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
+                          style="background-color: #fef3c7; color: #92400e;">INACTIVA</span>
+                  }
+                  @if (obtenerEstado(lic) === 'EXPIRADA') {
+                    <span class="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
+                          style="background-color: #fee2e2; color: #991b1b;">EXPIRADA</span>
+                  }
+                  <span class="text-xs font-bold px-2 py-1 rounded shadow"
+                    style="background-color: #025949; color: #ffffff;">→</span>
+                </div>
+              </li>
+            } @empty {
+              <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin licencias registradas.</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Proveedores registrados -->
+        <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
+             style="background-color: #1E2E40; border: 1px solid #025949;">
+          <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
+            <h2 class="text-base font-bold" style="color: #ffffff;">Proveedores Cloud</h2>
+            <button (click)="irAProveedores()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Gestionar →</button>
+          </div>
+          <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
+            @for (prov of proveedoresRecientes(); track prov.idProveedor) {
+              <li (click)="irAProveedores(prov.idProveedor)"
+                  class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
+                  style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
+                <div class="flex items-center gap-3 overflow-hidden">
+                  <div class="w-8 h-8 rounded flex items-center justify-center font-bold text-xs shrink-0 shadow"
+                       style="background-color: #C7D2D9; color: #1E2E40;">
+                    {{ prov.nombrePlataforma ? prov.nombrePlataforma.charAt(0) : 'P' }}
+                  </div>
+                  <div class="overflow-hidden">
+                    <p class="text-sm font-bold truncate" style="color: #ffffff;">
+                      {{ prov.nombrePlataforma || 'Sin nombre' }}
+                    </p>
+                    <p class="text-xs mt-0.5 truncate" style="color: #07BFA2;">
+                      {{ prov.categoriaServicio || 'General' }}
+                    </p>
+                  </div>
+                </div>
+                <span class="text-xs font-bold px-2 py-1 rounded shadow shrink-0 ml-2"
+                  style="background-color: #025949; color: #ffffff;">→</span>
+              </li>
+            } @empty {
+              <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin proveedores registrados.</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Asignaciones Recientes -->
+        <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
+             style="background-color: #1E2E40; border: 1px solid #025949;">
+          <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
+            <h2 class="text-base font-bold" style="color: #ffffff;">Asignaciones a Empleados</h2>
+            <button (click)="irAAsignaciones()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Ver todas →</button>
+          </div>
+          <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
+            @for (asig of asignacionesRecientes(); track asig.idAsignacion) {
+              <li (click)="irAAsignaciones(asig.idAsignacion)"
+                  class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
+                  style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
+                <div class="pr-3 overflow-hidden">
+                  <p class="text-sm font-bold truncate" style="color: #ffffff;">
+                    {{ asig.correoEmpleado || 'Empleado' }}
+                  </p>
+                  <p class="text-xs mt-0.5 truncate" style="color: #07BFA2;">
+                    {{ (asig.licencia && (asig.licencia.tipoPlan || asig.licencia.nombreProducto)) || 'Licencia de Software' }}
+                  </p>
+                </div>
+                <span class="text-xs font-bold uppercase px-2.5 py-1 rounded-full shrink-0 ml-2"
+                      style="background-color: #d1fae5; color: #065f46;">ACTIVA</span>
+              </li>
+            } @empty {
+              <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin asignaciones registradas.</li>
+            }
+          </ul>
+        </div>
+
+      </div>
+    }
+
+  } @else {
+
+    <!-- Vista empleado: solo sus licencias asignadas -->
+
+    @if (misLicenciasExpiradas().length > 0) {
+      <div class="mb-8 rounded-xl p-5 shadow-xl flex items-center gap-4 border-2"
+           style="background-color: #450a0a; border-color: #ef4444; color: #ffffff;">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow"
              style="background-color: #ef4444; color: #ffffff;">
-          ⚠️
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
         </div>
         <div>
-          <h3 class="text-lg font-bold flex items-center gap-2">
-            ¡Atención Requerida! {{ licenciasExpiradas() }} {{ licenciasExpiradas() === 1 ? 'licencia ha expirado o vencido' : 'licencias han expirado o vencido' }}
+          <h3 class="text-lg font-bold">
+            ¡Atención! {{ misLicenciasExpiradas().length }} {{ misLicenciasExpiradas().length === 1 ? 'de tus licencias ha expirado' : 'de tus licencias han expirado' }}
           </h3>
           <p class="text-xs mt-1 font-medium" style="color: #fecaca;">
-            @for (licExp of licenciasListaExpirada(); track licExp.idLicencia) {
+            @for (licExp of misLicenciasExpiradas(); track licExp.idLicencia) {
               <span class="inline-block mr-3">• <strong>{{ obtenerTitulo(licExp) }}</strong> (Venció el {{ obtenerFechaVencimiento(licExp) | date:'dd/MM/yyyy' }})</span>
             }
           </p>
         </div>
       </div>
-      <button (click)="irALicencias()"
-              class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow shrink-0 transition-colors hover:bg-red-500"
-              style="background-color: #dc2626; color: #ffffff;">
-        Resolver Ahora →
-      </button>
-    </div>
-  }
+    }
 
-  <!-- KPIs principales -->
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
-    <div (click)="irAProveedores()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
-         style="background-color: #1E2E40; border: 1px solid #025949;">
-      <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #C7D2D9;">Proveedores</p>
-      <p class="text-3xl font-bold" style="color: #07BFA2;">{{ totalProveedores() }}</p>
-      <span class="text-xs hover:underline mt-2 block" style="color: #4CD9BA;">Ver todos →</span>
-    </div>
-
-    <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
-         style="background-color: #1E2E40; border: 1px solid #025949;">
-      <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #C7D2D9;">Total Licencias</p>
-      <p class="text-3xl font-bold" style="color: #07BFA2;">{{ totalLicencias() }}</p>
-      <span class="text-xs hover:underline mt-2 block" style="color: #4CD9BA;">Ver todas →</span>
-    </div>
-
-    <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
-         style="background-color: #025949; border: 1px solid #07BFA2;">
-      <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #4CD9BA;">Licencias Activas</p>
-      <p class="text-3xl font-bold" style="color: #ffffff;">{{ licenciasActivas() }}</p>
-      <span class="text-xs mt-2 block" style="color: #d1fae5;">En uso normal →</span>
-    </div>
-
-    <div (click)="irAAsignaciones()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
-         style="background-color: #1E2E40; border: 1px solid #07BFA2;">
-      <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #4CD9BA;">Asignaciones</p>
-      <p class="text-3xl font-bold" style="color: #ffffff;">{{ totalAsignaciones() }}</p>
-      <span class="text-xs mt-2 block" style="color: #07BFA2;">Ver empleados →</span>
-    </div>
-
-    <div (click)="irALicencias()" class="rounded-xl p-5 shadow flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1"
-         style="background-color: #7f1d1d; border: 1px solid #b91c1c;">
-      <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #fca5a5;">Expiradas / Vencidas</p>
-      <p class="text-3xl font-bold" style="color: #ffffff;">{{ licenciasExpiradas() }}</p>
-      <span class="text-xs mt-2 block" style="color: #fee2e2;">Requieren atención →</span>
-    </div>
-  </div>
-
-  <!-- Grid de resumen: Licencias, Proveedores y Asignaciones -->
-  @if (loading()) {
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    @if (loading()) {
       <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
-      <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
-      <div class="rounded-xl h-64 animate-pulse opacity-60" style="background-color: #1E2E40; border: 1px solid #025949;"></div>
-    </div>
-  } @else {
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <!-- Licencias recientes -->
+    } @else {
       <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
            style="background-color: #1E2E40; border: 1px solid #025949;">
         <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
-          <h2 class="text-base font-bold" style="color: #ffffff;">Licencias y Estado</h2>
-          <button (click)="irALicencias()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Ver todas →</button>
+          <h2 class="text-base font-bold" style="color: #ffffff;">Mis Licencias Asignadas</h2>
         </div>
-        <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
-          @for (lic of licenciasRecientes(); track lic.idLicencia) {
-            <li (click)="irALicencias(lic.idLicencia)"
-                class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
-                style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
+        <ul class="flex-1 max-h-[500px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
+          @for (lic of misLicencias(); track lic.idLicencia) {
+            <li class="flex items-center justify-between px-5 py-3.5" style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
               <div class="pr-3 overflow-hidden">
                 <p class="text-sm font-bold truncate" style="color: #ffffff;" [title]="obtenerTitulo(lic)">
                   {{ obtenerTitulo(lic) }}
@@ -115,81 +258,15 @@
                   <span class="text-xs font-bold uppercase px-2 py-0.5 rounded-full"
                         style="background-color: #fee2e2; color: #991b1b;">EXPIRADA</span>
                 }
-                <span class="text-xs font-bold px-2 py-1 rounded shadow"
-                  style="background-color: #025949; color: #ffffff;">→</span>
               </div>
             </li>
           } @empty {
-            <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin licencias registradas.</li>
+            <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">No tienes licencias asignadas.</li>
           }
         </ul>
       </div>
+    }
 
-      <!-- Proveedores registrados -->
-      <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
-           style="background-color: #1E2E40; border: 1px solid #025949;">
-        <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
-          <h2 class="text-base font-bold" style="color: #ffffff;">Proveedores Cloud</h2>
-          <button (click)="irAProveedores()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Gestionar →</button>
-        </div>
-        <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
-          @for (prov of proveedoresRecientes(); track prov.idProveedor) {
-            <li (click)="irAProveedores(prov.idProveedor)"
-                class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
-                style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
-              <div class="flex items-center gap-3 overflow-hidden">
-                <div class="w-8 h-8 rounded flex items-center justify-center font-bold text-xs shrink-0 shadow"
-                     style="background-color: #C7D2D9; color: #1E2E40;">
-                  {{ prov.nombrePlataforma ? prov.nombrePlataforma.charAt(0) : 'P' }}
-                </div>
-                <div class="overflow-hidden">
-                  <p class="text-sm font-bold truncate" style="color: #ffffff;">
-                    {{ prov.nombrePlataforma || 'Sin nombre' }}
-                  </p>
-                  <p class="text-xs mt-0.5 truncate" style="color: #07BFA2;">
-                    {{ prov.categoriaServicio || 'General' }}
-                  </p>
-                </div>
-              </div>
-              <span class="text-xs font-bold px-2 py-1 rounded shadow shrink-0 ml-2"
-                style="background-color: #025949; color: #ffffff;">→</span>
-            </li>
-          } @empty {
-            <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin proveedores registrados.</li>
-          }
-        </ul>
-      </div>
-
-      <!-- Asignaciones Recientes -->
-      <div class="rounded-xl shadow-lg overflow-hidden flex flex-col"
-           style="background-color: #1E2E40; border: 1px solid #025949;">
-        <div class="flex items-center justify-between px-5 py-4" style="border-bottom: 1px solid #025949;">
-          <h2 class="text-base font-bold" style="color: #ffffff;">Asignaciones a Empleados</h2>
-          <button (click)="irAAsignaciones()" class="text-xs hover:underline font-bold transition-colors" style="color: #07BFA2;">Ver todas →</button>
-        </div>
-        <ul class="flex-1 max-h-[380px] overflow-y-auto no-scrollbar pr-1" style="list-style: none; margin: 0; padding: 0;">
-          @for (asig of asignacionesRecientes(); track asig.idAsignacion) {
-            <li (click)="irAAsignaciones(asig.idAsignacion)"
-                class="flex items-center justify-between px-5 py-3.5 transition-all duration-200 cursor-pointer hover:bg-white/10 hover:translate-x-1"
-                style="border-bottom: 1px solid rgba(2, 89, 73, 0.4);">
-              <div class="pr-3 overflow-hidden">
-                <p class="text-sm font-bold truncate" style="color: #ffffff;">
-                  {{ asig.correoEmpleado || 'Empleado' }}
-                </p>
-                <p class="text-xs mt-0.5 truncate" style="color: #07BFA2;">
-                  {{ (asig.licencia && (asig.licencia.tipoPlan || asig.licencia.nombreProducto)) || 'Licencia de Software' }}
-                </p>
-              </div>
-              <span class="text-xs font-bold uppercase px-2.5 py-1 rounded-full shrink-0 ml-2"
-                    style="background-color: #d1fae5; color: #065f46;">ACTIVA</span>
-            </li>
-          } @empty {
-            <li class="px-5 py-8 text-center text-sm" style="color: #C7D2D9;">Sin asignaciones registradas.</li>
-          }
-        </ul>
-      </div>
-
-    </div>
   }
 
 </div>

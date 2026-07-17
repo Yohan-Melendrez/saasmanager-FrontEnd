@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AsignacionesService, AsignacionPayload } from '../../services/api/asignaciones';
 import { LicenciasService } from '../../services/api/licencias';
-import { AuthService } from '../../core/auth.service';
+import { AuthService } from '../../services/auth/auth';
 import { Asignacion } from '../../models/asignacion.interface';
 import { Licencia } from '../../models/licencia.interface';
 
@@ -28,59 +28,54 @@ export class AsignacionesComponent implements OnInit {
   confirmandoEliminarId = signal<number | null>(null);
   guardando = signal<boolean>(false);
 
-  mostrarSelectorRol = signal<boolean>(false);
-
   form: FormGroup = this.fb.group({
     idLicencia: [null, Validators.required],
     correoEmpleado: ['', [Validators.required, Validators.email]],
   });
 
-  asignacionesFiltradas = computed<Asignacion[]>(() => {
-    if (this.authService.esAdmin()) return this.asignaciones();
-    const usuarioActual = this.authService.nombreUsuario().toLowerCase();
-    return this.asignaciones().filter(a => {
-      const correo = a?.correoEmpleado?.toLowerCase() || '';
-      const nombre = a?.empleado?.nombre?.toLowerCase() || '';
-      return correo.includes('carlos') || nombre.includes('carlos') || correo.includes(usuarioActual) || nombre.includes(usuarioActual);
-    });
-  });
+  asignacionesFiltradas = computed<Asignacion[]>(() => this.asignaciones());
 
   ngOnInit(): void {
     this.cargarDatos();
 
-    setTimeout(() => {
-      if (this.loading()) {
-        if (this.asignaciones().length === 0) {
-          this.asignaciones.set(this.mockAsignaciones());
-          this.licencias.set(this.mockLicencias());
+    if (this.authService.esAdmin()) {
+      setTimeout(() => {
+        if (this.loading()) {
+          if (this.asignaciones().length === 0) {
+            this.asignaciones.set(this.mockAsignaciones());
+            this.licencias.set(this.mockLicencias());
+          }
+          this.loading.set(false);
         }
-        this.loading.set(false);
-      }
-    }, 1200);
+      }, 1200);
+    }
   }
 
   cargarDatos(): void {
     this.loading.set(true);
+    const esAdmin = this.authService.esAdmin();
 
     this.asignacionesService.obtenerAsignaciones().subscribe({
       next: (data) => {
         if (Array.isArray(data) && data.length > 0) {
           this.asignaciones.set(data);
         } else {
-          this.asignaciones.set(this.mockAsignaciones());
+          this.asignaciones.set(esAdmin ? this.mockAsignaciones() : []);
         }
         this.loading.set(false);
       },
       error: () => {
-        this.asignaciones.set(this.mockAsignaciones());
+        this.asignaciones.set(esAdmin ? this.mockAsignaciones() : []);
         this.loading.set(false);
       },
     });
 
-    this.licenciasService.obtenerLicencias().subscribe({
-      next: (data) => this.licencias.set((Array.isArray(data) && data.length > 0) ? data : this.mockLicencias()),
-      error: () => this.licencias.set(this.mockLicencias()),
-    });
+    if (esAdmin) {
+      this.licenciasService.obtenerLicencias().subscribe({
+        next: (data) => this.licencias.set((Array.isArray(data) && data.length > 0) ? data : this.mockLicencias()),
+        error: () => this.licencias.set(this.mockLicencias()),
+      });
+    }
   }
 
   limpiarError(): void { this.errorMsg.set(null); }
@@ -161,12 +156,6 @@ export class AsignacionesComponent implements OnInit {
         this.confirmandoEliminarId.set(null);
       },
     });
-  }
-
-  simularRol(rol: 'ADMIN' | 'EMPLEADO'): void {
-    const nombre = rol === 'ADMIN' ? 'Administrador' : 'Carlos López';
-    this.authService.simularRol(rol, nombre);
-    this.mostrarSelectorRol.set(false);
   }
 
   obtenerTituloLicencia(lic: Licencia | undefined): string {
