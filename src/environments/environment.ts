@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'saasmanager-backend-production.up.railway.app',
+  apiUrl: 'https://saasmanager-backend-production.up.railway.app',
 };
